@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nasa-mcp"
+version = "0.1.0"
+description = "A production-ready MCP server for NASA APOD and image search."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Alok" }]
+keywords = ["mcp", "nasa", "apod", "astronomy", "images"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "mcp>=1.21.2",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+]
+
+[project.scripts]
+nasa-mcp = "nasa_mcp_server:main"
+
+[tool.setuptools]
+py-modules = ["nasa_mcp_server"]
