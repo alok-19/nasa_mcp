@@ -1,53 +1,51 @@
-# NASA MCP
+# <div align="center">NASA MCP</div>
 
-An MCP server that exposes two practical NASA tools:
+<div align="center">
 
-- `get_nasa_apod` for Astronomy Picture of the Day metadata
-- `search_images_data` for NASA image-library search
+**A polished Model Context Protocol server for NASA's Astronomy Picture of the Day and image search APIs.**
 
-It is intentionally small, typed, and easy to run locally or deploy behind any MCP-compatible client.
+Small enough to understand in minutes. Clean enough to ship. Structured enough for real MCP clients.
 
-## Why This Repo Exists
+[![Python](https://img.shields.io/badge/python-3.11%2B-0b3d91?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/MCP-FastMCP-1f6feb?style=for-the-badge)](https://github.com/modelcontextprotocol)
+[![NASA](https://img.shields.io/badge/API-NASA-d61f26?style=for-the-badge)](https://api.nasa.gov/)
+[![CI](https://img.shields.io/github/actions/workflow/status/alok-19/nasa_mcp/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/alok-19/nasa_mcp/actions)
+[![License](https://img.shields.io/badge/license-MIT-111827?style=for-the-badge)](./LICENSE)
 
-Many NASA demos stop at a notebook or a thin script. This repository packages the same idea as a reusable MCP server with:
+[Quick Start](#quick-start) •
+[Why This Exists](#why-this-exists) •
+[Tools](#tools) •
+[Project Layout](#project-layout)
 
-- input validation for dates, queries, and result sizes
-- structured error handling around upstream API failures
-- compact search responses that are useful inside tool-calling workflows
-- unit coverage for the client and MCP tool layer
+</div>
+
+---
+
+## Why This Exists
+
+Most NASA API demos stop at a notebook or a thin script. That is fine for exploration, but weak for reuse.
+
+This project turns the same idea into a production-friendly MCP server:
+
+- structured tool outputs instead of stringified JSON blobs
+- validated inputs for dates, queries, and result sizes
+- consistent upstream error handling
+- clean packaging with a runnable CLI entrypoint
+- unit tests for both the NASA client and MCP tool layer
 - GitHub Actions CI for repeatable verification
 
-## Features
+If you want a compact reference implementation for an external-data MCP server, this repo is that.
 
-| Tool | What it does | Notes |
+## What You Get
+
+| Tool | Purpose | Output |
 | --- | --- | --- |
-| `get_nasa_apod` | Fetches NASA APOD metadata for a specific date or the latest entry | Validates date format and APOD availability window |
-| `search_images_data` | Searches NASA's image library and returns compact image metadata | Limits page size and normalizes response shape |
-
-## Project Layout
-
-```text
-nasa_mcp/
-├── api/
-│   ├── __init__.py
-│   └── nasa.py
-├── tests/
-│   ├── test_nasa.py
-│   └── test_server.py
-├── .github/workflows/ci.yml
-├── nasa_mcp_server.py
-├── pyproject.toml
-└── README.md
-```
-
-## Requirements
-
-- Python 3.11+
-- A NASA API key for higher rate limits
-
-You can use `DEMO_KEY`, but it is heavily rate-limited and not appropriate for steady production traffic.
+| `get_nasa_apod` | Fetch NASA's Astronomy Picture of the Day for a specific date or the latest day | Raw APOD metadata from NASA |
+| `search_images_data` | Search NASA's image library with a keyword query | Normalized image metadata with compact fields |
 
 ## Quick Start
+
+Run the server locally in a few commands:
 
 ```bash
 python -m venv .venv
@@ -56,17 +54,27 @@ pip install .
 cp .env.example .env
 ```
 
-Set `NASA_API_KEY` in `.env`, then run:
+Set your NASA key in `.env`:
+
+```bash
+NASA_API_KEY=your_nasa_api_key_here
+```
+
+Then start the MCP server:
 
 ```bash
 nasa-mcp
 ```
 
-## Tool Examples
+You can use `DEMO_KEY`, but it is rate-limited and not appropriate for sustained use.
 
-### APOD
+## Tools
 
-Input:
+### `get_nasa_apod`
+
+Returns Astronomy Picture of the Day metadata from NASA's APOD API.
+
+**Input**
 
 ```json
 {
@@ -74,7 +82,14 @@ Input:
 }
 ```
 
-Output shape:
+**Behavior**
+
+- accepts `YYYY-MM-DD`
+- rejects dates before `1995-06-16`
+- rejects future dates
+- returns a structured error payload when validation or the upstream API fails
+
+**Example shape**
 
 ```json
 {
@@ -85,9 +100,11 @@ Output shape:
 }
 ```
 
-### Image Search
+### `search_images_data`
 
-Input:
+Searches NASA's image library and returns compact result objects.
+
+**Input**
 
 ```json
 {
@@ -96,7 +113,14 @@ Input:
 }
 ```
 
-Output shape:
+**Behavior**
+
+- trims and validates the query
+- restricts `size` to a safe range
+- extracts a useful image URL when present
+- returns normalized items instead of the full upstream payload
+
+**Example shape**
 
 ```json
 {
@@ -114,26 +138,62 @@ Output shape:
 }
 ```
 
-## Verification
+## Why It Feels Production-Ready
 
-Local verification used for this repo:
+- **Typed, small surface area**: easy to audit and maintain.
+- **Validated request boundaries**: bad inputs fail fast.
+- **Structured MCP responses**: better client interoperability.
+- **No unnecessary runtime dependencies**: only the essentials.
+- **CI-backed**: tests run on multiple Python versions.
+
+## Project Layout
+
+```text
+nasa_mcp/
+├── api/
+│   ├── __init__.py
+│   └── nasa.py
+├── tests/
+│   ├── test_nasa.py
+│   └── test_server.py
+├── .github/workflows/ci.yml
+├── .env.example
+├── nasa_mcp_server.py
+├── pyproject.toml
+└── README.md
+```
+
+## Local Development
+
+Install and run verification locally:
 
 ```bash
 python -m py_compile nasa_mcp_server.py api/nasa.py tests/test_nasa.py tests/test_server.py
 python -m unittest discover -s tests -v
 ```
 
-CI runs the same test suite on Python 3.11, 3.12, and 3.13.
+Install as a package:
+
+```bash
+pip install .
+```
+
+## Design Principles
+
+- **Keep the server thin**: NASA-specific logic stays in `api/nasa.py`.
+- **Normalize where it helps**: image search returns useful compact fields.
+- **Fail clearly**: validation and upstream failures become explicit errors.
+- **Prefer boring deployability**: simple packaging and predictable startup.
 
 ## Production Notes
 
 - Use a real NASA API key instead of `DEMO_KEY`.
-- Run the server under a process manager in environments where long-lived MCP processes are expected.
-- Treat upstream NASA availability and rate limits as an external dependency.
-- If you need stronger SLAs, add retry and caching policy at the deployment edge rather than inside the tool layer.
+- Expect upstream availability and rate limits to shape reliability.
+- Add caching at the edge if you expect repeated APOD or search traffic.
+- Run behind a process manager if you depend on long-lived server uptime.
 
 ## Roadmap
 
-- optional response caching for APOD and repeated searches
-- transport-specific deployment examples
+- response caching for repeated APOD and search requests
 - richer media support beyond image-only search
+- deployment examples for common MCP host setups
