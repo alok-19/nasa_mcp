@@ -19,6 +19,11 @@ Small enough to understand in minutes. Clean enough to ship. Structured enough f
 
 </div>
 
+<div align="center">
+  <img src="https://apod.nasa.gov/apod/image/2411/Sombrero_WebbHubble_2290.jpg" alt="Example Astronomy Picture of the Day: The Sombrero Galaxy from Webb and Hubble" width="860" />
+  <p><sub>Example APOD: <strong>The Sombrero Galaxy from Webb and Hubble</strong></sub></p>
+</div>
+
 ---
 
 ## Why This Exists
